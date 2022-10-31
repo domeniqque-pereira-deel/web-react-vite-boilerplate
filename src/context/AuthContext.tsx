@@ -1,10 +1,12 @@
 import React, { useCallback, useContext, useMemo, useState } from 'react';
-import { accountApi, LoginProps, User } from '~/api/account';
+import toast from 'react-hot-toast';
+import { AccountApi, LoginProps, User } from '~/api/account';
+import { getToken, setAccessToken } from '~/config/client';
 
 export type AuthContextData = {
-  token?: string;
   user?: User;
   isSigned: boolean;
+  isSignIn: boolean;
   login(data: LoginProps): Promise<void>;
 };
 
@@ -16,26 +18,48 @@ type Props = {
 
 export const AuthProvider = ({ children }: Props) => {
   const [isSignIn, setIsSignIn] = useState(false);
-  const [authData, setAuthData] = useState({
-    token: undefined,
-    user: undefined,
-  });
+  const [userData, setUserData] = useState<User>();
 
-  const isSigned = useMemo(() => !!authData.user, [authData.user]);
+  const isSigned = !!userData;
+
+  React.useLayoutEffect(() => {
+    async function loadProfile() {
+      const token = getToken();
+      console.log({ token });
+      if (!token) return;
+      setAccessToken(token);
+      const profile = await AccountApi.profile();
+
+      setUserData(profile);
+    }
+
+    loadProfile();
+  }, []);
 
   const login = useCallback(async ({ email, password }: LoginProps) => {
+    setIsSignIn(true);
+
     try {
-      const { data } = await accountApi.login({ email, password });
-    } catch (err) {}
+      const { access_token } = await AccountApi.login({ email, password });
+      setAccessToken(access_token);
+
+      const profile = await AccountApi.profile();
+      setUserData(profile);
+    } catch (err) {
+      toast.error('Something went wrong! Try login again.');
+    } finally {
+      setIsSignIn(false);
+    }
   }, []);
 
   const value = useMemo(
     () => ({
-      ...authData,
+      user: userData,
       login,
       isSigned,
+      isSignIn,
     }),
-    [authData, isSigned, login],
+    [userData, isSigned, login, isSignIn],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

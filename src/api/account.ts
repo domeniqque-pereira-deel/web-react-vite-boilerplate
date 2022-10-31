@@ -11,6 +11,13 @@ export type LoginProps = {
   password: string;
 };
 
-export const accountApi = {
-  login: async (props: LoginProps) => await client.post<{ access_token: string }>('/account/auth/login', props),
+export const AccountApi = {
+  login: async (props: LoginProps) => {
+    const { data } = await client.post<{ access_token: string }>('/account/auth/login', props);
+    return data;
+  },
+  profile: async () => {
+    const { data } = await client.get<User>('/account/auth/profile');
+    return data;
+  },
 };
