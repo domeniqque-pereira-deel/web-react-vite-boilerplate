@@ -20,4 +20,5 @@ export const AccountApi = {
     const { data } = await client.get<User>('/account/auth/profile');
     return data;
   },
+  profileUrl: '/account/auth/profile',
 };

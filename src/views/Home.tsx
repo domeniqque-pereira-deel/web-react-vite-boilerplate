@@ -1,5 +1,8 @@
+import { useProfile } from '~/hooks/useProfile';
+
 const Home = () => {
-  return <h1>Home</h1>;
+  const { data } = useProfile();
+  return <h1>Welcome {data?.name}</h1>;
 };
 
 export default Home;

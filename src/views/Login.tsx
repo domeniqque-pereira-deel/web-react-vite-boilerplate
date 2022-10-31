@@ -1,26 +1,37 @@
 import { Avatar, Box, Button, Container, Grid, Link, TextField, Typography } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
-import { useAuth } from '~/context/AuthContext';
 import { LoginProps } from '~/api/account';
+import { useAuth } from '~/context/AuthContext';
 
-const validationSchema = yup.object().shape({
-  email: yup.string().email(),
-  password: yup.string(),
-});
+const validationSchema = yup
+  .object()
+  .shape({
+    email: yup.string().email(),
+    password: yup.string().min(1, 'Input your password'),
+  })
+  .required();
 
 const Login = () => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginProps>();
+    setError,
+  } = useForm<LoginProps>({
+    resolver: yupResolver(validationSchema),
+  });
 
-  const { login } = useAuth();
+  const { login, isSignIn } = useAuth();
 
   const onSubmit = async (data: LoginProps) => {
-    await login(data);
+    try {
+      await login(data);
+    } catch (err) {
+      setError('password', { message: 'Invalid email or password' });
+    }
   };
 
   return (
@@ -50,7 +61,9 @@ const Login = () => {
             label="Email Address"
             autoComplete="email"
             autoFocus
-            {...register('email')}
+            {...register('email', { required: true })}
+            error={!!errors.email}
+            helperText={errors.email?.message}
           />
           <TextField
             margin="normal"
@@ -60,10 +73,13 @@ const Login = () => {
             type="password"
             id="password"
             autoComplete="current-password"
-            {...register('password')}
+            disabled={isSignIn}
+            {...register('password', { required: true })}
+            error={!!errors.password}
+            helperText={errors.password?.message}
           />
 
-          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
+          <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }} disabled={isSignIn}>
             Sign In
           </Button>
 

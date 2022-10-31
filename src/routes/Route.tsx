@@ -1,4 +1,4 @@
-import React, { memo, useMemo } from 'react';
+import React, { memo } from 'react';
 import { Route as ReactRoute, RouteProps as ReactRouteProps, Redirect } from 'react-router-dom';
 import { useAuth } from '~/context/AuthContext';
 import { DashboardLayout } from '~/layouts/Dashboard';
