@@ -58,7 +58,7 @@ const Login = () => {
             required
             fullWidth
             id="email"
-            label="Email Address"
+            label="Email"
             autoComplete="email"
             autoFocus
             {...register('email', { required: true })}
@@ -83,7 +83,7 @@ const Login = () => {
             Sign In
           </Button>
 
-          <Grid container>
+          {/* <Grid container>
             <Grid item xs>
               <Link href="#" variant="body2">
                 Forgot password?
@@ -94,7 +94,7 @@ const Login = () => {
                 {"Don't have an account? Sign Up"}
               </Link>
             </Grid>
-          </Grid>
+          </Grid> */}
         </Box>
       </Box>
     </Container>

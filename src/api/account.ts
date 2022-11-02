@@ -11,9 +11,14 @@ export type LoginProps = {
   password: string;
 };
 
+export type LoginResponse = {
+  accessToken: string;
+  refreshToken: string;
+};
+
 export const AccountApi = {
   login: async (props: LoginProps) => {
-    const { data } = await client.post<{ access_token: string }>('/account/auth/login', props);
+    const { data } = await client.post<LoginResponse>('/account/auth/login', props);
     return data;
   },
   profile: async () => {

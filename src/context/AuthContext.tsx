@@ -3,8 +3,8 @@ import React, { memo, useCallback, useContext, useMemo, useRef, useState } from 
 import toast from 'react-hot-toast';
 import { useSWRConfig } from 'swr';
 import { AccountApi, LoginProps, User } from '~/api/account';
-import { getToken, setAccessToken } from '~/config/client';
-import { useProfile } from '~/hooks/useProfile';
+import { setAuthTokens } from '~/config/client';
+import { getAccessToken } from '~/config/client/utils';
 
 export type AuthContextData = {
   user?: User;
@@ -28,19 +28,16 @@ export const AuthProvider = memo(({ children }: Props) => {
 
   const isSigned = !!userData;
 
-  const shouldFetchUserOnStart = useRef(!!getToken() && !userData);
+  const shouldFetchUserOnStart = useRef(!!getAccessToken() && !userData);
+
   React.useEffect(() => {
-    console.log('AuthProvider', shouldFetchUserOnStart.current);
     if (shouldFetchUserOnStart.current) {
       async function loadProfile() {
         try {
           setFetchingProfile(true);
-          setAccessToken(getToken());
           const profile = await AccountApi.profile();
           setUserData(profile);
           mutate(AccountApi.profileUrl, profile);
-        } catch (err) {
-          setAccessToken(null);
         } finally {
           setFetchingProfile(false);
           shouldFetchUserOnStart.current = false;
@@ -57,8 +54,9 @@ export const AuthProvider = memo(({ children }: Props) => {
     setIsSignIn(true);
 
     try {
-      const { access_token } = await AccountApi.login({ email, password });
-      setAccessToken(access_token);
+      const tokens = await AccountApi.login({ email, password });
+
+      setAuthTokens(tokens);
 
       const profile = await AccountApi.profile();
       setUserData(profile);
