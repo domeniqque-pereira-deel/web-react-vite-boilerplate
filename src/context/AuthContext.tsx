@@ -3,8 +3,8 @@ import React, { memo, useCallback, useContext, useMemo, useRef, useState } from 
 import toast from 'react-hot-toast';
 import { useSWRConfig } from 'swr';
 import { AccountApi, LoginProps, User } from '~/api/account';
-import { setAuthTokens } from '~/config/client';
-import { getAccessToken } from '~/config/client/utils';
+import { resetTokens, setAuthTokens } from '~/config/client';
+import { getAccessToken, getTokens } from '~/config/client/utils';
 
 export type AuthContextData = {
   user?: User;
@@ -12,6 +12,7 @@ export type AuthContextData = {
   isSignIn: boolean;
   isFetchingProfile: boolean;
   login(data: LoginProps): Promise<void>;
+  logout(): Promise<void>;
 };
 
 export const AuthContext = React.createContext({} as AuthContextData);
@@ -30,37 +31,30 @@ export const AuthProvider = memo(({ children }: Props) => {
 
   const shouldFetchUserOnStart = useRef(!!getAccessToken() && !userData);
 
+  const loadProfile = useCallback(async () => {
+    const profile = await AccountApi.profile();
+    setUserData(profile);
+    mutate(AccountApi.profileUrl, profile);
+  }, []);
+
   React.useEffect(() => {
     if (shouldFetchUserOnStart.current) {
-      async function loadProfile() {
-        try {
-          setFetchingProfile(true);
-          const profile = await AccountApi.profile();
-          setUserData(profile);
-          mutate(AccountApi.profileUrl, profile);
-        } finally {
-          setFetchingProfile(false);
-          shouldFetchUserOnStart.current = false;
-        }
-      }
+      setFetchingProfile(true);
 
-      loadProfile();
+      loadProfile().finally(() => setFetchingProfile(false));
     }
 
     shouldFetchUserOnStart.current = false;
-  }, []);
+  }, [loadProfile]);
 
   const login = useCallback(async ({ email, password }: LoginProps) => {
     setIsSignIn(true);
 
     try {
       const tokens = await AccountApi.login({ email, password });
-
       setAuthTokens(tokens);
 
-      const profile = await AccountApi.profile();
-      setUserData(profile);
-      mutate(AccountApi.profileUrl, profile);
+      await loadProfile();
     } catch (err) {
       if (err instanceof AxiosError && err.status === 500) {
         toast.error('Something went wrong! Try again.');
@@ -71,15 +65,26 @@ export const AuthProvider = memo(({ children }: Props) => {
     }
   }, []);
 
+  const logout = useCallback(async () => {
+    const { refreshToken } = getTokens();
+    if (refreshToken) {
+      await AccountApi.logout({ refreshToken });
+    }
+
+    resetTokens();
+    window.location.reload();
+  }, []);
+
   const value = useMemo(
     () => ({
       user: userData,
-      login,
       isSigned,
       isSignIn,
       isFetchingProfile,
+      login,
+      logout,
     }),
-    [userData, isSigned, login, isSignIn, isFetchingProfile],
+    [userData, isSigned, login, isSignIn, isFetchingProfile, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

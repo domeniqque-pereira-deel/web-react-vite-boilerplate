@@ -21,6 +21,9 @@ export const AccountApi = {
     const { data } = await client.post<LoginResponse>('/account/auth/login', props);
     return data;
   },
+  logout: async (props: { refreshToken: string }) => {
+    await client.post('/account/auth/logout', props);
+  },
   profile: async () => {
     const { data } = await client.get<User>('/account/auth/profile');
     return data;

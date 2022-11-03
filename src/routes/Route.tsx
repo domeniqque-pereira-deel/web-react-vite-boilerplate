@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Route as ReactRoute, RouteProps as ReactRouteProps, Redirect } from 'react-router-dom';
 import { useAuth } from '~/context/AuthContext';
-import { DashboardLayout } from '~/layouts/Dashboard';
+import { AppLayout } from '~/layouts/App';
 import { PageLayout } from '~/layouts/Page';
 
 interface Props extends ReactRouteProps {
@@ -17,7 +17,7 @@ export const Route = memo(({ title, isPublic, component: Component, isPage, ...r
   const isPrivate = !isPublic;
   const hasPermission = true;
 
-  const Layout = isPage ? PageLayout : DashboardLayout;
+  const Layout = isPage ? PageLayout : AppLayout;
 
   React.useLayoutEffect(() => {
     if (title) {

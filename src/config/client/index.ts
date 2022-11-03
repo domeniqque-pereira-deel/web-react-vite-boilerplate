@@ -7,7 +7,7 @@ client.defaults.headers['Authorization'] = getAccessToken() ? `Bearer ${getAcces
 
 client.interceptors.request.use(
   async (config) => {
-    const { accessToken } = getTokens();
+    const accessToken = getAccessToken();
 
     if (accessToken) {
       config.headers = {
