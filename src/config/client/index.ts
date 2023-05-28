@@ -1,5 +1,11 @@
 import { memoizedRefreshToken } from './refreshToken';
-import { ACCESS_TOKEN_KEY, createClient, getAccessToken, getTokens, REFRESH_TOKEN_KEY } from './utils';
+import {
+  ACCESS_TOKEN_KEY,
+  createClient,
+  getAccessToken,
+  getTokens,
+  REFRESH_TOKEN_KEY,
+} from './utils';
 
 export const client = createClient();
 
